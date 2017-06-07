@@ -15,21 +15,11 @@ import com.llwwlql.dao.VjudgeUser;
 public class CrawlerVjudgeUser implements BaseCrawlerUser {
 	private String url = "https://vjudge.net/user/";
 	private String userName;
-	private String baseFileName = "E:/TestDoc/";
 
 	public CrawlerVjudgeUser(String userName) {
 		this.userName = userName;
 		this.url = this.url + this.userName;
 	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
 	public String getUserName() {
 		return userName;
 	}
@@ -41,7 +31,7 @@ public class CrawlerVjudgeUser implements BaseCrawlerUser {
 	@Override
 	public Document getUserInfo() throws Exception {
 		Connection conn = Jsoup.connect(url);
-		//conn.timeout(10000);
+		// conn.timeout(10000);
 		conn.validateTLSCertificates(false);
 		Document doc = conn.get();
 		return doc;
@@ -57,31 +47,17 @@ public class CrawlerVjudgeUser implements BaseCrawlerUser {
 		String attempted;
 		Element element = doc.body();
 		Elements nickNameEs = element.getElementsByTag("span");
-		
+
 		Element solvedEs = element.getElementsByTag("td").get(3);
 		solved = solvedEs.text();
 		Element attEs = element.getElementsByTag("td").get(4);
 		attempted = attEs.text();
-		//这里处理需要斟酌,不同用户可能不一样
-		if(nickNameEs.get(2).text() != null)
+		// 这里处理需要斟酌,不同用户可能不一样
+		if (nickNameEs.get(2).text() != null)
 			nickName = nickNameEs.get(2).text();
-		VjudgeUser vjudgeUser = new VjudgeUser(this.userName, nickName, solved, attempted);
+		VjudgeUser vjudgeUser = new VjudgeUser(this.userName, nickName, solved,
+				attempted);
 		System.out.println(vjudgeUser);
-	}
-
-	@Override
-	public void getCookies() throws Exception {
-
-	}
-
-	@Override
-	public void saveCookies() throws Exception {
-
-	}
-
-	@Override
-	public void login() throws Exception {
-
 	}
 
 	/**

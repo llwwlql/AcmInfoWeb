@@ -10,15 +10,9 @@ import org.jsoup.nodes.Document;
  * @date: 2017-6-7 下午4:14:32
  */
 interface BaseCrawlerUser {
-	
+
 	Document getUserInfo() throws Exception;
 
 	void saveUserInfo(Document doc) throws Exception;
-
-	void getCookies() throws Exception;
-
-	void saveCookies() throws Exception;
-
-	void login() throws Exception;
 
 }
