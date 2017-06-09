@@ -1,5 +1,7 @@
 package com.llwwlql.crawler.contest;
 
+import java.util.Map;
+
 import org.jsoup.nodes.Document;
 
 /**
@@ -11,11 +13,11 @@ import org.jsoup.nodes.Document;
  */
 interface BaseCrawlerContest {
 
-	Document getContesInfo() throws Exception;
+	Document getContestInfo() throws Exception;
 
 	void saveContestInfo(Document doc) throws Exception;
 
-	void saveCookies() throws Exception;
+	void saveCookies(Map<String ,String> cookies) throws Exception;
 
 	void readCookies() throws Exception;
 

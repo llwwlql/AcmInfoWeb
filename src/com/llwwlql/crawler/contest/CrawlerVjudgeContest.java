@@ -1,70 +1,83 @@
+
 package com.llwwlql.crawler.contest;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Properties;
 
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
-public class CrawlerVjudgeContest implements BaseCrawlerContest {
+import com.google.gson.Gson;
+import com.llwwlql.dao.Contest;
+import com.llwwlql.dao.Json2VjudgeContest;
+import com.llwwlql.tool.DateUtil;
+import com.llwwlql.tool.Save2File;
 
-	private String url = "https://vjudge.net/contest/";
-	private String contestId;
+public class CrawlerVjudgeContest {
 
-	public CrawlerVjudgeContest(String contestId) {
-		super();
-		this.contestId = contestId;
-	}
+	private final static String vjParam = "vjParam.properties";
+	private final static String contestUrl = "https://vjudge.net/contest/data";
+	private Document doc = null;
 
-	public String getContestId() {
-		return contestId;
-	}
-
-	public void setContestId(String contestId) {
-		this.contestId = contestId;
-	}
-
-	@Override
-	public Document getContesInfo() throws Exception {
-
-		Document doc = Jsoup.connect(url).validateTLSCertificates(false).get();
-		System.out.println(doc.toString());
+	/**
+	 * 获取Vjudge所有的Contest基本信息
+	 * @return
+	 * @throws Exception
+	 */
+	public Document crawlAllContest() throws Exception {
+		Connection conn = Jsoup.connect(contestUrl);
+		InputStream fin = new FileInputStream(vjParam);
+		Properties pro = new Properties();
+		pro.load(fin);
+		if (fin != null)
+			fin.close();
+		conn.validateTLSCertificates(false).ignoreContentType(true)
+				.data((Map) pro);
+		doc = conn.post();
+		Save2File.save2File("E:/TestDoc/AllVjudgeContest.html", doc.toString());
 		return doc;
 	}
 
-	@Override
-	public void saveContestInfo(Document doc) throws Exception {
-
+	/**
+	 * 保存所有Contest信息
+	 * 
+	 * @throws Exception
+	 */
+	public void saveAllContest() throws Exception {
+		String json = doc.body().text();
+		Gson gson = new Gson();
+		Json2VjudgeContest contestInfo = gson.fromJson(json,
+				Json2VjudgeContest.class);
+		String[][] data = contestInfo.getData();
+		String nowTime = DateUtil.getNowDate();
+		
+		// 将信息从数组中获取出来
+		for (String[] strings : data) {
+			String startTime = DateUtil
+					.getBeginDate(Long.parseLong(strings[2]));
+			String endTime = DateUtil.getBeginDate(Long.parseLong(strings[3]));
+			Integer properNum = Integer.parseInt(data[0][13]);
+			Integer originId = Integer.parseInt(data[0][0]);
+			// 如何在数据库中存在，不操作
+			if (!isExist(originId) && endTime.compareTo(nowTime) <= 0) {
+				Contest vjudgeContest = new Contest(strings[1], originId, startTime, endTime, (short)2, (short)1, properNum);
+				// save vjudgeContest对象
+			}
+		}
 	}
 
-	@Override
-	public void saveCookies() throws Exception {
-
+	public boolean isExist(Integer origin) {
+		//select isnull((select top(1) 1 from tableName where conditions), 0)
+		//判断该数据是否在数据库中存在
+		return true;
 	}
 
-	@Override
-	public void readCookies() throws Exception {
-
-	}
-
-	@Override
-	public void login() throws Exception {
-
-	}
-	
-	public void save2File(String fileName, String data) throws IOException {
-
-		OutputStream fout = new FileOutputStream(fileName);
-		fout.write(data.getBytes());
-		if (fout != null)
-			fout.close();
-	}
-	
 	public static void main(String[] args) throws Exception {
-		CrawlerVjudgeContest vjudgeContest = new CrawlerVjudgeContest("166636");
-		Document doc = vjudgeContest.getContesInfo();
+		CrawlerVjudgeContest crawlerVCInfo = new CrawlerVjudgeContest();
+		crawlerVCInfo.crawlAllContest();
+		crawlerVCInfo.saveAllContest();
 	}
-
 }

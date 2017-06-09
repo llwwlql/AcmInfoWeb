@@ -31,7 +31,6 @@ public class CrawlerVjudgeUser implements BaseCrawlerUser {
 	@Override
 	public Document getUserInfo() throws Exception {
 		Connection conn = Jsoup.connect(url);
-		// conn.timeout(10000);
 		conn.validateTLSCertificates(false);
 		Document doc = conn.get();
 		return doc;
@@ -42,6 +41,7 @@ public class CrawlerVjudgeUser implements BaseCrawlerUser {
 	 */
 	@Override
 	public void saveUserInfo(Document doc) throws Exception {
+		//正则字符串，判断nickName是否存在
 		String nickName = this.userName;
 		String solved;
 		String attempted;
@@ -53,7 +53,8 @@ public class CrawlerVjudgeUser implements BaseCrawlerUser {
 		Element attEs = element.getElementsByTag("td").get(4);
 		attempted = attEs.text();
 		// 这里处理需要斟酌,不同用户可能不一样
-		if (nickNameEs.get(2).text() != null)
+		// && !nickName.matches("")
+		if (!nickNameEs.get(3).text().equals(""))
 			nickName = nickNameEs.get(2).text();
 		VjudgeUser vjudgeUser = new VjudgeUser(this.userName, nickName, solved,
 				attempted);
@@ -72,10 +73,10 @@ public class CrawlerVjudgeUser implements BaseCrawlerUser {
 		fout.write(data.getBytes());
 		if (fout != null)
 			fout.close();
-	}
+	}	
 
 	public static void main(String[] args) {
-		CrawlerVjudgeUser crawlerVjudge = new CrawlerVjudgeUser("llwwlql");
+		CrawlerVjudgeUser crawlerVjudge = new CrawlerVjudgeUser("HTTPCrawl");
 		try {
 			Document doc = crawlerVjudge.getUserInfo();
 			crawlerVjudge.saveUserInfo(doc);
